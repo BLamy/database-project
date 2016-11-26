@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "title": "foobar",
+    "abstract": "foobar abstract",
+    "citation": "Foobar citation",
+    "keywords": [
+      "foo",
+      "bar"
+    ],
+    "authors": [
+      "Bob Smith",
+      "Faculity"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "fizzbuzz",
+    "abstract": "fizzbuzz abstract",
+    "citation": "fizzbuzz citation",
+    "keywords": [
+      "fizz",
+      "buzz"
+    ],
+    "authors": [
+      "Chris Johnson"
+    ]
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "root": true,
+  "parser": "babel-eslint",
+  "extends": "airbnb",
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true,
+    "mocha": true,
+  },
+  "rules": {
+    "consistent-return": 0,
+    "comma-dangle": 0,
+    "no-use-before-define": 0,
+    "dot-location": 0,
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_$" }]
+  },
+  "settings": {
+    "import/resolver": {
+      "babel-module": {}
+    }
+  },
+  "plugins": [
+    "import"
+  ]
+}
