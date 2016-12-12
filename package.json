@@ -1,6 +1,8 @@
 {
   "name": "database-project",
   "version": "0.1.0",
+  "homepage": "http://kelvin.ist.rit.edu/~blue",
+  "proxy": "http://kelvin.ist.rit.edu/~blue",
   "private": true,
   "devDependencies": {
     "babel-plugin-module-resolver": "^2.3.0",
