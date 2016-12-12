@@ -7,100 +7,55 @@ import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/distinctUntilKeyChanged';
 import 'rxjs/add/operator/debounceTime';
+import 'rxjs/add/operator/pluck';
 
 // Meta
 export const NAMESPACE = 'client';
 const DEFAULT_STATE = {
   user: null,
+  searchMode: 'papers',
   searchResults: [],
   randomPapers: []
 };
 
 // Constants
-const ATTEMPT_LOGIN = `${NAMESPACE}/ATTEMPT_LOGIN`;
-const LOG_OUT = `${NAMESPACE}/LOG_OUT`;
-const LOGIN_SUCCESS = `${NAMESPACE}/LOGIN_SUCCESS`;
-const LOGIN_FAILED = `${NAMESPACE}/LOGIN_FAILED`;
-
 const SEARCH_TEXT_CHANGED = `${NAMESPACE}/SEARCH_TEXT_CHANGED`;
 const SEARCH_RESULTS = `${NAMESPACE}/SEARCH_RESULTS`;
 const SEARCH_FAILED = `${NAMESPACE}/SEARCH_FAILED`;
-
-const RANDOM_PAPERS = `${NAMESPACE}/RANDOM_PAPERS`;
-const RANDOM_PAPERS_FAILED = `${NAMESPACE}/RANDOM_PAPERS_FAILED`;
+const SEARCH_MODE_CHANGED = `${NAMESPACE}/SEARCH_MODE_CHANGED`;
 
 // Actions
-export const attemptLogin = (username, password) => ({ type: ATTEMPT_LOGIN, username, password });
-export const loginSuccess = user => ({ type: LOGIN_SUCCESS, user });
-export const loginFailed = err => ({ type: LOGIN_FAILED, err });
-export const logout = () => ({ type: LOG_OUT });
-
 export const searchTextChanged = text => ({ type: SEARCH_TEXT_CHANGED, text });
 export const didGetSearchResults = searchResults => ({ type: SEARCH_RESULTS, searchResults });
 export const searchFailed = err => ({ type: SEARCH_FAILED, err });
-
-export const didGetRandomPapers = randomPapers => ({ type: RANDOM_PAPERS, randomPapers });
-export const getRandomPapersFailed = err => ({ type: RANDOM_PAPERS_FAILED, randomPapers: [], err });
+export const updateSearchMode = searchMode => ({ type: SEARCH_MODE_CHANGED, searchMode });
 
 // Reducer
 export const reducer = createReducer({
-  [LOGIN_SUCCESS]: (state, { user }) => ({ ...state, user }),
-  [LOGIN_FAILED]: (state, { err }) => ({ ...state, user: null, err }),
-  [LOG_OUT]: state => ({ ...state, user: null }),
-
   [SEARCH_RESULTS]: (state, { searchResults }) => ({ ...state, searchResults }),
   [SEARCH_FAILED]: state => ({ ...state, searchResults: [] }),
-
-  [RANDOM_PAPERS]: (state, { randomPapers }) => ({ ...state, randomPapers }),
-  [RANDOM_PAPERS_FAILED]: (state, { err }) => ({ ...state, randomPapers: [], err }),
+  [SEARCH_MODE_CHANGED]: (state, { searchMode }) => ({
+    ...state,
+    searchMode: searchMode === 'faculty' ? 'faculty' : 'papers'
+   }),
 }, DEFAULT_STATE);
 
 // Side-effects
-const login = ({ username, password }) =>
-  fetch('/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ username, password })
-  });
-
-const search = query => fetch('/search.json');
-// fetch('/search', {
-//   method: 'POST',
-//   headers: {
-//     'Content-Type': 'application/json'
-//   },
-//   body: JSON.stringify({ query })
-// })
+const search = (method, query) => fetch(`search.php?method=${method}&q=${query}`);
 
 // Epic
-const loginEpic = action$ =>
-  action$
-    .ofType(ATTEMPT_LOGIN)
-    .mergeMap(login)
-    .mergeMap(res => {
-      if (res.status >= 200 && res.status < 300) {
-        return res.json();
-      }
-      throw new Error('Username or Password invalid.');
-    })
-    .catch(() => loginFailed('Username or Password invalid.'))
-    .map(loginSuccess);
-
-const searchEpic = action$ =>
-  action$
-    .ofType(SEARCH_TEXT_CHANGED)
+const searchEpic = (action$, store) =>
+  action$.ofType(SEARCH_TEXT_CHANGED).pluck('text')
     .distinctUntilKeyChanged()
     .debounceTime(150)
-    .mergeMap(search)
+    .mergeMap(query => search(store.getState().searchMode, query))
     .mergeMap(res => {
       if (res.status >= 200 && res.status < 300) {
         return res.json();
       }
       throw new Error('Search Failed');
     })
-    .catch(() => searchFailed('Search Failed'))
+    .catch(searchFailed)
     .map(didGetSearchResults);
 
-export const epic = combineEpics(loginEpic, searchEpic);
+export const epic = combineEpics(searchEpic);

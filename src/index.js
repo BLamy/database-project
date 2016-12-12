@@ -1,4 +1,5 @@
 import React from 'react';
+import 'antd/dist/antd.css';
 import { render } from 'react-dom';
 import { pipe } from 'ramda';
 import { createStore, compose, applyMiddleware } from 'redux';
@@ -8,7 +9,7 @@ import { Provider } from 'react-redux';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
-import { reducer, epic, getRandomPapersFailed, didGetRandomPapers } from './model';
+import { reducer, epic } from './model';
 import App from './controller';
 
 // Polyfills
@@ -27,22 +28,11 @@ const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 const reduxObservableMiddleware = pipe(createEpicMiddleware, applyMiddleware, composeEnhancers);
 const store = createStore(reducer, undefined, reduxObservableMiddleware(epic));
 
-// Get random papers
-fetch('/search.json')
-  .then(res => {
-    if (res.status >= 200 && res.status < 300) {
-      return res.json();
-    }
-    throw new Error('Failed to get random papers.');
-  })
-  .catch(pipe(getRandomPapersFailed, store.dispatch))
-  .then(pipe(didGetRandomPapers, store.dispatch));
-
 // Root Render
 render(
   <MuiThemeProvider muiTheme={getMuiTheme({ palette })}>
     <Provider store={store}>
-      <App store={store} />
+      <App />
     </Provider>
   </MuiThemeProvider>,
   document.getElementById('root')

@@ -1,15 +1,11 @@
 import React from 'react';
-import { any, equals } from 'ramda';
 import styled from 'styled-components';
 
 import RaisedButton from 'material-ui/RaisedButton';
 import Paper from 'material-ui/Paper';
 import TextField from 'material-ui/TextField';
-import FlatButton from 'material-ui/FlatButton';
-
-import { papers } from '../model/types';
-
-const { bool, func, arrayOf, string } = React.PropTypes;
+import SearchForm from './SearchForm';
+const { bool, func, string, array } = React.PropTypes;
 
 const Grid = styled.div`
   padding: 20px;
@@ -24,19 +20,9 @@ const PaddedPaper = styled(Paper)`
   margin: 10px;
 `;
 
-const Home = ({ isAdmin, searchTextChanged, searchResults, username }) => (
+const Home = ({ isAdmin, canEdit, searchTextChanged, searchResults, searchMode, updateSearchMode }) => (
   <Grid>
-    <PaddedPaper>
-      <TextField fullWidth floatingLabelText="Search Query" onChange={searchTextChanged} />
-      <ul>
-        {searchResults.map(({ title, authors }, i) =>
-          <li key={i}>
-            {title}&nbsp;by:&nbsp;{authors.join(', ')}
-            {any(equals(username), authors) && <FlatButton>Edit</FlatButton>}
-          </li>
-        )}
-      </ul>
-    </PaddedPaper>
+    <SearchForm {...{ canEdit, searchTextChanged, searchResults, searchMode, updateSearchMode }} />
     {isAdmin &&
       <PaddedPaper>
         <TextField fullWidth floatingLabelText="Paper Title" />
@@ -51,7 +37,9 @@ Home.propTypes = {
   isAdmin: bool,
   searchTextChanged: func,
   username: string,
-  searchResults: arrayOf(papers)
+  searchMode: string,
+  updateSearchMode: func,
+  searchResults: array
 };
 
 export default Home;
