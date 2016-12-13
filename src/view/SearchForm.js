@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-
-import FlatButton from 'material-ui/FlatButton';
+import { values } from 'ramda';
+import Button from 'antd/lib/button';
 import Paper from 'material-ui/Paper';
 import Input from 'antd/lib/input';
 import Select, { Option } from 'antd/lib/select';
@@ -12,6 +12,15 @@ const { func, arrayOf } = React.PropTypes;
 const SimpleSelect = styled(Select)`
   width: 80px;
 `;
+const EditButton = styled(Button)`
+  float: right;
+  margin-left: 10px;
+  position: relative;
+  bottom: 25px;
+`;
+const ListItem = styled.li`
+  border-bottom: 1px solid #c1c1c1;
+`
 
 /**
  * List Results for a faculty search
@@ -19,7 +28,7 @@ const SimpleSelect = styled(Select)`
 const FacultyResults = ({ searchResults }) => (
   <ul>
     {searchResults.map(({ id, fName, lName, email }) =>
-      <li key={id}>{fName} {lName} ({email})</li>
+      <ListItem key={id}>{fName} {lName} ({email})</ListItem>
     )}
   </ul>
 );
@@ -30,13 +39,16 @@ FacultyResults.propTypes = {
 /**
  * List Results for a papers search
  */
-const PapersResults = ({ searchResults, canEdit }) => (
+const PapersResults = ({ searchResults, canEdit, setActivePaper }) => (
   <ul>
-    {searchResults.map(({ title, authors }, i) =>
-      <li key={i}>
-        {title}&nbsp;by:&nbsp;{authors.join(', ')}
-        {canEdit(authors) && <FlatButton>Edit</FlatButton>}
-      </li>
+    {searchResults.map(({ id, title, citation, abstract, authors=[] }) =>
+      <ListItem key={id}>
+        <h1>{title}</h1>by:&nbsp;{authors.join(', ')}
+        <EditButton onClick={() => setActivePaper(id, title, citation, abstract, authors)}>View</EditButton>
+        {canEdit(authors) &&
+          <EditButton onClick={() => setActivePaper(id, title, citation, abstract, authors, true)}>Edit</EditButton>
+        }
+      </ListItem>
     )}
   </ul>
 );
@@ -48,7 +60,7 @@ PapersResults.propTypes = {
 /**
  * Search Component
  */
-const SearchForm = ({ searchTextChanged, canEdit, searchResults, searchMode, updateSearchMode }) => (
+const SearchForm = ({ searchTextChanged, canEdit, searchResults, searchMode, updateSearchMode, setActivePaper }) => (
   <div>
     <Input
       placeholder="Search Query"
@@ -63,7 +75,7 @@ const SearchForm = ({ searchTextChanged, canEdit, searchResults, searchMode, upd
     {
       searchMode === 'faculty' ?
         <FacultyResults searchResults={searchResults} /> :
-        <PapersResults canEdit={canEdit} searchResults={searchResults} />
+        <PapersResults canEdit={canEdit} setActivePaper={setActivePaper} searchResults={searchResults} />
     }
   </div>
 );

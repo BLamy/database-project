@@ -12,7 +12,7 @@ import { combineEpics } from 'redux-observable';
 
 import { reducer as searchReducer, epic as searchEpic } from './model/search';
 import { reducer as userReducer, epic as loginEpic } from './model/user';
-import { epic as paperEpic } from './model/papers';
+import { reducer as paperReducer, epic as paperEpic } from './model/papers';
 
 import App from './controller';
 
@@ -33,7 +33,8 @@ const reduxObservableMiddleware = pipe(createEpicMiddleware, applyMiddleware, co
 const middleware = reduxObservableMiddleware(combineEpics(loginEpic, searchEpic, paperEpic));
 const reducer = combineReducers({
   search: searchReducer,
-  user: userReducer
+  user: userReducer,
+  paper: paperReducer
 });
 const store = createStore(reducer, undefined, middleware);
 

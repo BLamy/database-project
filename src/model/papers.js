@@ -11,13 +11,38 @@ import 'rxjs/add/operator/pluck';
 
 // Meta
 export const NAMESPACE = 'papers';
-const DEFAULT_STATE = {};
+const DEFAULT_STATE = {
+  id: null,
+  title: null,
+  citation: null,
+  abstract: null,
+  isEditing: false,
+  authors: []
+};
 
 // Constants
 const ADD_PAPER = `${NAMESPACE}/ADD_PAPER`;
+const SET_ACTIVE_PAPER = `${NAMESPACE}/SET_ACTIVE_PAPER`;
+const ADD_PAPER_FAILED = `${NAMESPACE}/ADD_PAPER_FAILED`;
+const CLEAR_ACTIVE_PAPER = `${NAMESPACE}/CLEAR_ACTIVE_PAPER`;
 
 // Actions
 export const addPaper = (title, citation, abstract) => ({ type: ADD_PAPER, title, citation, abstract });
+export const setActivePaper = (id, title, citation, abstract, authors, isEditing) =>
+  ({ type: SET_ACTIVE_PAPER, id, title, citation, abstract, authors, isEditing });
+export const addPaperFailed = err => ({ type: SET_ACTIVE_PAPER, err });
+export const clearActivePaper = () => ({ type: CLEAR_ACTIVE_PAPER });
+
+// Reducer
+export const reducer = createReducer({
+  [ADD_PAPER_FAILED]: (state, { err }) => ({ ...state, err }),
+  [SET_ACTIVE_PAPER]: (state, { id, title, citation, abstract, authors, isEditing }) => ({
+    ...state, id, title, citation, abstract, authors, isEditing
+  }),
+  [CLEAR_ACTIVE_PAPER]: state => ({
+    ...state, id: null, title: null, citation: null, abstract: null, authors: [], isEditing: false
+  }),
+}, DEFAULT_STATE);
 
 // Side-effects
 const addPaperRequest = (Authorization, title, citation, abstract) => fetch(`admin/paper.php`, {
@@ -27,6 +52,11 @@ const addPaperRequest = (Authorization, title, citation, abstract) => fetch(`adm
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({ title, citation, abstract })
+}).then(res => {
+  if (res.status === 200) {
+    return res.json();
+  }
+  return Promise.resolve(null);
 });
 
 // Epic
@@ -34,10 +64,10 @@ export const epic = (action$, store) =>
   action$.ofType(ADD_PAPER)
     .mergeMap(({ title, citation, abstract }) =>
       addPaperRequest(store.getState().user.Authorization, title, citation, abstract)
-    ).filter(() => 1 === 2);
-    // .map(results => {
-    //   if (!results) {
-    //     return searchFailed("Add Paper Failed");
-    //   }
-    //   return didGetSearchResults(results);
-    // });
+    )
+    .map(results => {
+      if (!results) {
+        return addPaperFailed("Add Paper Failed");
+      }
+      return setActivePaper(0, results.title, results.citation, results.abstract, results.authors, false);
+    });

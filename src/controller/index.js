@@ -20,7 +20,7 @@ const style = {
 
 const App = ({
   isAdmin, isLoggedIn, isGuest, logout, searchMode, searchTextChanged, searchResults,
-  canEdit, updateSearchMode, attemptLogin, username, addPaper
+  canEdit, updateSearchMode, attemptLogin, username, addPaper, setActivePaper, activePaper, clearActivePaper
 }) => (
   <div>
     <AppBar
@@ -37,7 +37,10 @@ const App = ({
       }
     />
     <Home
-      {...{ isAdmin, isGuest, canEdit, searchResults, searchMode, updateSearchMode, attemptLogin, username, addPaper }}
+      {...{
+        isAdmin, isGuest, canEdit, searchResults, searchMode, updateSearchMode,
+        attemptLogin, username, addPaper, setActivePaper, activePaper, clearActivePaper
+      }}
       searchTextChanged={e => searchTextChanged(e.target.value)}
     />
   </div>
@@ -55,7 +58,8 @@ App.propTypes = {
   updateSearchMode: func,
 };
 
-export default connect(({ search, user }) => ({
+export default connect(({ search, user, paper }) => ({
+  activePaper: paper,
   username: user.name,
   isAdmin: user.isAdmin,
   canEdit: any(equals((user || {}).name)),

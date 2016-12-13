@@ -1,13 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import RaisedButton from 'material-ui/RaisedButton';
 import Paper from 'material-ui/Paper';
 import TextField from 'material-ui/TextField';
 import SearchForm from './SearchForm';
 import AddPaperForm from './AddPaperForm';
+import ActivePaper from './ActivePaper';
 import Login from './Login';
-const { bool, func, string, array } = React.PropTypes;
+const { bool, func, string, array, object } = React.PropTypes;
 
 const Grid = styled.div`
   padding: 20px;
@@ -29,24 +29,28 @@ const Right = styled(PaddedPaper)`
 
 const Home = ({
   isAdmin, username, isGuest, canEdit, searchTextChanged, searchResults,
-  searchMode, updateSearchMode, attemptLogin, addPaper
+  searchMode, updateSearchMode, attemptLogin, addPaper, setActivePaper, activePaper, clearActivePaper
 }) => (
-  <Grid>
-    <Left>
-      <SearchForm {...{ canEdit, searchTextChanged, searchResults, searchMode, updateSearchMode }} />
-    </Left>
-    <Right>
-      {username ?
-        <h1>Hello {username}</h1> :
-        <Login handleSubmit={({ username, password }) => attemptLogin(username, password)} />
-      }
-      {isAdmin && <AddPaperForm handleSubmit={({ title, citation, abstract }) => addPaper(title, citation, abstract)}/> }
-    </Right>
-  </Grid>
+  <div>
+    <Grid>
+      <Left>
+        <SearchForm {...{ canEdit, searchTextChanged, searchResults, searchMode, updateSearchMode, setActivePaper }} />
+      </Left>
+      <Right>
+        {username ?
+          <h1>Hello {username}</h1> :
+          <Login handleSubmit={({ username, password }) => attemptLogin(username, password)} />
+        }
+        {isAdmin && <AddPaperForm handleSubmit={({ title, citation, abstract }) => addPaper(title, citation, abstract)}/> }
+      </Right>
+    </Grid>
+    <ActivePaper visible={activePaper.title != null} clearActivePaper={clearActivePaper} {...activePaper} />
+  </div>
 );
 Home.propTypes = {
   isGuest: bool,
   isAdmin: bool,
+  activePaper: object,
   username: string,
   searchTextChanged: func,
   username: string,
@@ -54,6 +58,7 @@ Home.propTypes = {
   searchMode: string,
   updateSearchMode: func,
   addPaper: func,
+  setActivePaper: func,
   searchResults: array
 };
 
