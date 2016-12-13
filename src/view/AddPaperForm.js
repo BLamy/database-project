@@ -38,9 +38,6 @@ const AddPaperForm = Form.create()(React.createClass({
             <Input placeholder="Citation" />
           )}
         </FormItem>
-        <Button type="primary" htmlType="submit">
-          Add
-        </Button>
       </Form>
     );
   },

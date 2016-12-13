@@ -3,6 +3,7 @@ import Paper from 'material-ui/Paper';
 import IconButton from 'material-ui/IconButton';
 import styled from 'styled-components';
 import Modal from 'antd/lib/modal';
+import AddPaperForm from './AddPaperForm';
 
 const Wrapper = styled(Paper)`
   width: 80%;
@@ -13,35 +14,20 @@ const Wrapper = styled(Paper)`
   left: 50%;
   transform: translate(-50%, -50%);
 `;
-
-// const Model = styled.div`
-//   background-color: rgba(0, 0, 0, .3);
-//   position: absolute;
-//   width: 100%;
-//   height: 100%;
-//   z-index: 9000;
-//   top: 0;
-// `;
 const PaddedDiv = styled.div`
   padding: 20px;
 `;
-const AppBar = styled.div`
-  width: 100%;
-  height: 64px;
-  background-color: rgb(243, 110, 33);
-  color: white;
-  font-size: 24px;
-  line-height: 64px;
-  padding-left: 20px;
-`;
 
-const ActivePaper = ({ handleSubmit, visible, id, title, abstract, citation, authors, clearActivePaper }) => (
+const ActivePaper = ({ handleSubmit, visible, id, title, abstract, citation, authors, clearActivePaper, isEditing }) => (
   <Modal title={title} visible={visible} onOk={clearActivePaper} onCancel={clearActivePaper} okText="Done" cancelText="Cancel">
-      <PaddedDiv>
-        <p>By: {authors.join(',')}</p>
-        <p>{abstract}</p>
-        <p>{citation}</p>
-      </PaddedDiv>
+      {isEditing ?
+        <AddPaperForm />:
+        <PaddedDiv>
+          <p>By: {authors.join(',')}</p>
+          <p>{abstract}</p>
+          <p>{citation}</p>
+        </PaddedDiv>
+      }
   </Modal>
 );
 ActivePaper.propTypes = {

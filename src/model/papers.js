@@ -1,4 +1,5 @@
 import { createReducer } from '../util';
+import { combineEpics } from 'redux-observable';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
@@ -22,6 +23,7 @@ const DEFAULT_STATE = {
 
 // Constants
 const ADD_PAPER = `${NAMESPACE}/ADD_PAPER`;
+const UPDATE_PAPER = `${NAMESPACE}/UPDATE_PAPER`;
 const SET_ACTIVE_PAPER = `${NAMESPACE}/SET_ACTIVE_PAPER`;
 const ADD_PAPER_FAILED = `${NAMESPACE}/ADD_PAPER_FAILED`;
 const CLEAR_ACTIVE_PAPER = `${NAMESPACE}/CLEAR_ACTIVE_PAPER`;
@@ -45,8 +47,8 @@ export const reducer = createReducer({
 }, DEFAULT_STATE);
 
 // Side-effects
-const addPaperRequest = (Authorization, title, citation, abstract) => fetch(`admin/paper.php`, {
-  method: 'post',
+const paperRequest = (method, Authorization, title, citation, abstract) => fetch(`admin/paper.php`, {
+  method,
   headers: {
     'Authorization': Authorization,
     'Content-Type': 'application/json'
@@ -60,10 +62,10 @@ const addPaperRequest = (Authorization, title, citation, abstract) => fetch(`adm
 });
 
 // Epic
-export const epic = (action$, store) =>
+const addPaperEpic = (action$, store) =>
   action$.ofType(ADD_PAPER)
     .mergeMap(({ title, citation, abstract }) =>
-      addPaperRequest(store.getState().user.Authorization, title, citation, abstract)
+      paperRequest('post', store.getState().user.Authorization, title, citation, abstract)
     )
     .map(results => {
       if (!results) {
@@ -71,3 +73,17 @@ export const epic = (action$, store) =>
       }
       return setActivePaper(0, results.title, results.citation, results.abstract, results.authors, false);
     });
+
+const updatePaperEpic = (action$, store) =>
+  action$.ofType(UPDATE_PAPER)
+    .mergeMap(({ title, citation, abstract }) =>
+      paperRequest('put', store.getState().user.Authorization, title, citation, abstract)
+    )
+    .map(results => {
+      if (!results) {
+        return addPaperFailed("Add Paper Failed");
+      }
+      return setActivePaper(0, results.title, results.citation, results.abstract, results.authors, false);
+    });
+
+export const epic = combineEpics(addPaperEpic, updatePaperEpic);
