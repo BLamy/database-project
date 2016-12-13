@@ -1,11 +1,12 @@
 import { createReducer } from '../util';
+import { combineEpics } from 'redux-observable';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/distinctUntilKeyChanged';
+import 'rxjs/add/operator/withLatestFrom';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/pluck';
 
@@ -26,7 +27,7 @@ const SEARCH_MODE_CHANGED = `${NAMESPACE}/SEARCH_MODE_CHANGED`;
 export const searchTextChanged = text => ({ type: SEARCH_TEXT_CHANGED, text });
 export const didGetSearchResults = results => ({ type: SEARCH_RESULTS, results });
 export const searchFailed = err => ({ type: SEARCH_FAILED, err });
-export const updateSearchMode = mode => ({ type: SEARCH_MODE_CHANGED, mode });
+export const updateSearchMode = mode => ({ type: SEARCH_MODE_CHANGED, mode, results:[] });
 
 // Reducer
 export const reducer = createReducer({
@@ -42,7 +43,12 @@ export const reducer = createReducer({
 const search = (method, query) => fetch(`public/search.php?method=${method}&q=${query}`);
 
 // Epic
-export const epic = (action$, store) =>
+const searchModeChangedEpic = (action$, store) =>
+  action$.ofType(SEARCH_MODE_CHANGED)
+    .withLatestFrom(action$.ofType(SEARCH_TEXT_CHANGED).pluck('text'))
+    .map(([_, query]) => searchTextChanged(query));
+
+const searchTextChangedEpic = (action$, store) =>
   action$.ofType(SEARCH_TEXT_CHANGED).pluck('text')
     .debounceTime(150)
     .mergeMap(query => search(store.getState().search.mode, query))
@@ -58,3 +64,5 @@ export const epic = (action$, store) =>
       }
       return didGetSearchResults(results);
     });
+
+export const epic = combineEpics(searchModeChangedEpic, searchTextChangedEpic)
