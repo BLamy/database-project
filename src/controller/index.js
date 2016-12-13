@@ -8,7 +8,9 @@ import MenuItem from 'material-ui/MenuItem';
 import IconMenu from 'material-ui/IconMenu';
 
 import { getActionsFromModel } from '../util';
-import * as model from '../model';
+import * as searchModel from '../model/search';
+import * as papersModel from '../model/papers';
+import * as userModel from '../model/user';
 import Home from '../view/Home';
 const { bool, func, array, string } = React.PropTypes;
 
@@ -17,7 +19,8 @@ const style = {
 };
 
 const App = ({
-  isAdmin, isLoggedIn, logout, searchMode, searchTextChanged, searchResults, canEdit, updateSearchMode
+  isAdmin, isLoggedIn, isGuest, logout, searchMode, searchTextChanged, searchResults,
+  canEdit, updateSearchMode, attemptLogin, username, addPaper
 }) => (
   <div>
     <AppBar
@@ -34,26 +37,32 @@ const App = ({
       }
     />
     <Home
-      {...{ isAdmin, canEdit, searchResults, searchMode, updateSearchMode }}
+      {...{ isAdmin, isGuest, canEdit, searchResults, searchMode, updateSearchMode, attemptLogin, username, addPaper }}
       searchTextChanged={e => searchTextChanged(e.target.value)}
     />
   </div>
 );
 App.propTypes = {
+  username: string,
   isAdmin: bool,
-  isLoggedIn: bool,
-  canEdit: func,
   searchMode: string,
+  searchResults: array,
+  canEdit: func,
+  attemptLogin: func,
   logout: func,
+  addPaper: func,
   searchTextChanged: func,
   updateSearchMode: func,
-  searchResults: array
 };
 
-export default connect(({ user, searchResults, searchMode }) => ({
-  isLoggedIn: !!user,
-  canEdit: any(equals((user || {}).username)),
-  isAdmin: user && user.group === 'Faculity',
-  searchResults,
-  searchMode
-}), getActionsFromModel(model))(App);
+export default connect(({ search, user }) => ({
+  username: user.name,
+  isAdmin: user.isAdmin,
+  canEdit: any(equals((user || {}).name)),
+  searchResults: search.results,
+  searchMode: search.mode
+}), {
+  ...getActionsFromModel(searchModel),
+  ...getActionsFromModel(userModel),
+  ...getActionsFromModel(papersModel)
+})(App);

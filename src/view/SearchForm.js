@@ -13,13 +13,6 @@ const SimpleSelect = styled(Select)`
   width: 80px;
 `;
 
-const PaddedPaper = styled(Paper)`
-  padding: 20px;
-  width: 50%;
-  height: 100%;
-  margin: 10px;
-`;
-
 /**
  * List Results for a faculty search
  */
@@ -55,8 +48,8 @@ PapersResults.propTypes = {
 /**
  * Search Component
  */
-const Search = ({ searchTextChanged, canEdit, searchResults, searchMode, updateSearchMode }) => (
-  <PaddedPaper>
+const SearchForm = ({ searchTextChanged, canEdit, searchResults, searchMode, updateSearchMode }) => (
+  <div>
     <Input
       placeholder="Search Query"
       onChange={searchTextChanged}
@@ -72,7 +65,7 @@ const Search = ({ searchTextChanged, canEdit, searchResults, searchMode, updateS
         <FacultyResults searchResults={searchResults} /> :
         <PapersResults canEdit={canEdit} searchResults={searchResults} />
     }
-  </PaddedPaper>
+  </div>
 );
 
-export default Search;
+export default SearchForm;

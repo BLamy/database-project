@@ -1,5 +1,5 @@
 import { createReducer } from '../util';
-import { combineEpics } from 'redux-observable';
+import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
@@ -10,12 +10,10 @@ import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/pluck';
 
 // Meta
-export const NAMESPACE = 'client';
+export const NAMESPACE = 'search';
 const DEFAULT_STATE = {
-  user: null,
-  searchMode: 'papers',
-  searchResults: [],
-  randomPapers: []
+  mode: 'papers',
+  results: []
 };
 
 // Constants
@@ -26,36 +24,37 @@ const SEARCH_MODE_CHANGED = `${NAMESPACE}/SEARCH_MODE_CHANGED`;
 
 // Actions
 export const searchTextChanged = text => ({ type: SEARCH_TEXT_CHANGED, text });
-export const didGetSearchResults = searchResults => ({ type: SEARCH_RESULTS, searchResults });
+export const didGetSearchResults = results => ({ type: SEARCH_RESULTS, results });
 export const searchFailed = err => ({ type: SEARCH_FAILED, err });
-export const updateSearchMode = searchMode => ({ type: SEARCH_MODE_CHANGED, searchMode });
+export const updateSearchMode = mode => ({ type: SEARCH_MODE_CHANGED, mode });
 
 // Reducer
 export const reducer = createReducer({
-  [SEARCH_RESULTS]: (state, { searchResults }) => ({ ...state, searchResults }),
-  [SEARCH_FAILED]: state => ({ ...state, searchResults: [] }),
-  [SEARCH_MODE_CHANGED]: (state, { searchMode }) => ({
+  [SEARCH_RESULTS]: (state, { results }) => ({ ...state, results }),
+  [SEARCH_FAILED]: state => ({ ...state, results: [] }),
+  [SEARCH_MODE_CHANGED]: (state, { mode }) => ({
     ...state,
-    searchMode: searchMode === 'faculty' ? 'faculty' : 'papers'
+    mode: mode === 'faculty' ? 'faculty' : 'papers'
    }),
 }, DEFAULT_STATE);
 
 // Side-effects
-const search = (method, query) => fetch(`search.php?method=${method}&q=${query}`);
+const search = (method, query) => fetch(`public/search.php?method=${method}&q=${query}`);
 
 // Epic
-const searchEpic = (action$, store) =>
+export const epic = (action$, store) =>
   action$.ofType(SEARCH_TEXT_CHANGED).pluck('text')
-    .distinctUntilKeyChanged()
     .debounceTime(150)
-    .mergeMap(query => search(store.getState().searchMode, query))
+    .mergeMap(query => search(store.getState().search.mode, query))
     .mergeMap(res => {
       if (res.status >= 200 && res.status < 300) {
         return res.json();
       }
-      throw new Error('Search Failed');
+      return Promise.resolve(null);
     })
-    .catch(searchFailed)
-    .map(didGetSearchResults);
-
-export const epic = combineEpics(searchEpic);
+    .map(results => {
+      if (!results) {
+        return searchFailed("Search Failed");
+      }
+      return didGetSearchResults(results);
+    });
