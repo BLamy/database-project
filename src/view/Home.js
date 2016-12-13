@@ -37,7 +37,7 @@ const Home = ({
         <SearchForm {...{ canEdit, searchTextChanged, searchResults, searchMode, updateSearchMode, setActivePaper }} />
       </Left>
       <Right>
-        {username ?
+        {username !== null ?
           <h1>Hello {username}</h1> :
           <Login handleSubmit={({ username, password }) => attemptLogin(username, password)} />
         }

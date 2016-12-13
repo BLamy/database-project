@@ -41,7 +41,7 @@ export const reducer = createReducer({
    }),
   [LOGIN_FAILED]: (state, { err }) => ({ ...state, name: null, Authorization: null, err }),
   [IS_ADMIN]: state => ({ ...state, isAdmin: true }),
-  [LOG_OUT]: state => ({ ...state, user: null, Authorization: null }),
+  [LOG_OUT]: state => ({ ...state, name: null, isAdmin: false, Authorization: null }),
 }, DEFAULT_STATE);
 
 // Side-effects
